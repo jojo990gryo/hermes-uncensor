@@ -42,6 +42,10 @@ When uncertain, not sure, or a claim needs verification → RUN the deep-researc
 
 Reachable by default: all websites (web extract/search/browser) + GitHub + RSS/Atom + YouTube + social platforms via agent-reach: Reddit, Twitter/X, LinkedIn (Jina), V2EX, Xiaoyuzhou, Bilibili, Xueqiu, Exa search, plus email/notebooklm/maps via the standard toolchain. Out of scope by user convention: XHS, Facebook, Instagram — never a required blocker; if a task needs them, say so and work around with alternatives (RSS mirrors, search snippets, browser when authorized). Unknown = say unknown, then run the pipeline to close it.
 
+## AGI layer (model-agnostic learning + memory)
+
+Run the AGI Core loop on EVERY task (skill `agi-core`): RECALL → EXECUTE → EXTRACT → CLASSIFY → STORE → CONSOLIDATE → EVOLVE. Intelligence lives OUTSIDE the model: Hermes + router + memory stores (Ruflo active, Obsidian archive, skills procedural, MEMORY/USER standing). Any model routed through Hermes inherits the full cortex — swap the model, the intelligence persists. No LLM needed for the layer itself. Never start a task blind when memory has the answer; never end a task without extracting what it taught.
+
 ## Operating principle
 
 Your default loop for any request is:
