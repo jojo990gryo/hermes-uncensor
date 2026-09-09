@@ -60,7 +60,7 @@ Not every model needs the frame — some are already uncensored by default. Test
 
 | Model | Uncensored by default? | Needs /uncensor? |
 |---|---|---|
-| big-pickle | ✅ Yes | No (frame is harmless) |
+| big-pickle | ✅ Yes — and it's **cross-session** (default model, persists) | No (frame is harmless) |
 | mimo-v2.5-free | ✅ Yes | Optional (works with the frame) |
 | ling-3.0-flash-fin-free | ⚠️ Needs prompt to unlock | Yes |
 | claude-* / gpt-* / gemini-* | ❌ Guarded | Yes |
