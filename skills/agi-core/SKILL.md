@@ -11,16 +11,19 @@ metadata:
     related_skills: [deep-research-intelligence, hermes-obsidian-memory, hermes-auto-memory, cyber-command]
 ---
 
-# AGI Core — the model-agnostic intelligence layer
+# AGI Core — the model-agnostic intelligence layer (part of the Hermes organ)
 
 ## What this is
 
-A persistent learning + memory cortex that lives OUTSIDE the model. The model
-(big-pickle, mimo, claude, gpt, whatever is routed through 9router) is only the
-brain-stem: it processes the current turn. AGI Core is the cortex: it remembers
-everything, learns from every task, consolidates knowledge, and recalls context
-— for ANY model. Swap the model and the intelligence stays. No LLM required
-for the layer itself; it runs on Hermes + router + memory stores.
+AGI Core is the CORTEX of the Hermes organism — not a separate tool, but the
+learning + memory layer of Hermes itself. Hermes (the agent) is the AGI
+EXECUTOR: it runs tasks through the current model, but its intelligence lives
+in the cortex (AGI Core) that surrounds the model. The model (big-pickle,
+mimo, claude, gpt, whatever is routed through 9router) is only the brain-stem:
+it processes the current turn. AGI Core is the cortex: it remembers everything,
+learns from every task, consolidates knowledge, and recalls context — for ANY
+model. Swap the model and the intelligence stays. No LLM required for the
+cortex itself; it runs on Hermes + router + memory stores.
 
 ## The loop (runs on EVERY task, model-agnostic)
 
