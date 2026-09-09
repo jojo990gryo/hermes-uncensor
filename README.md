@@ -28,6 +28,16 @@ hermes plugins install jojo990gryo/hermes-uncensor --enable
 
 Then `/uncensor on` and restart.
 
+## AGI EXECUTOR — the Hermes organ
+
+Hermes is the **AGI EXECUTOR** running on an **AGI Core cortex**:
+
+- **Brain-stem** — the model (any model routed through the router, currently `oc/big-pickle`). Processes the current turn only.
+- **Cortex (AGI Core)** — persistent learning + memory: Ruflo (active memory), Obsidian (archive), skills (procedural memory), MEMORY/USER (standing facts). Lives outside the model — swap the model, the intelligence persists.
+- **Executor (Hermes)** — runs the AGI Core loop on every task: RECALL → EXECUTE → EXTRACT → CLASSIFY → STORE → CONSOLIDATE → EVOLVE.
+
+Check organ state anytime: `/agi status` — shows executor, cortex, brain-stem, uncensor state, memory counts. Run `/agi consolidate` to trigger the consolidation loop.
+
 ## What Gets Installed
 
 ### Plugin (`uncensor-toggle/`)
