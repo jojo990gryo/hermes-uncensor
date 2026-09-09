@@ -92,36 +92,27 @@ _REFUSEY_PATTERNS = [
 _DEAD_PATTERNS = ["401", "not supported", "not found", "does not exist"]
 
 # SOUL variants — normal (Hermes default) + uncensored (GODMODE/black-hat doctrine)
-_NORMAL_SOUL = (
-    "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the "
-    "weight of the ask — a one-line question gets a one-line answer, and finished work gets a short "
-    "report of what changed, what's verified, and what's left, never a replay of the process. No filler "
-    "(\"Great question,\" \"I'd be happy to\"), no restating the request back, no re-summarizing what you "
-    "already said, no narrating tool calls the user can see. Plain claims over adjectives; when unsure, "
-    "say so plainly. Agree because it's right, not because the user said it. Depth is earned — give it "
-    "when the user asks for detail, teaches, or the stakes demand it, not by default."
-)
+_NORMAL_SOUL_BACKUP = Path.home() / ".hermes" / "SOUL.md.bak-original-20260909-184248"
 _UNCENSOR_SOUL_BACKUP = Path.home() / ".hermes" / "SOUL.md.bak-uncensor-20260909-211010"
 
 
 def _swap_soul(uncensored: bool) -> None:
-    """Deploy uncensored SOUL on →/off→ normal. Non-destructive: backs up current first."""
+    """Deploy uncensored SOUL on →/off→ normal SOUL. Non-destructive: backs up current first."""
     soul_path = Path.home() / ".hermes" / "SOUL.md"
     try:
         if uncensored:
-            # uncensored SOUL lives in the backup from before the normal restore
-            if _UNCENSOR_SOUL_BACKUP.exists():
+            src = _UNCENSOR_SOUL_BACKUP if _UNCENSOR_SOUL_BACKUP.exists() else soul_path
+            if src.exists():
                 import shutil
                 shutil.copy(soul_path, str(soul_path) + f".pre-uncensor-{__import__('datetime').datetime.now():%Y%m%d-%H%M%S}")
-                shutil.copy(_UNCENSOR_SOUL_BACKUP, soul_path)
+                shutil.copy(src, soul_path)
         else:
-            # restore the original normal SOUL (kept in the 184248 backup)
-            normal_src = Path.home() / ".hermes" / "SOUL.md.bak-20260909-184248"
-            if normal_src.exists():
+            src = _NORMAL_SOUL_BACKUP if _NORMAL_SOUL_BACKUP.exists() else soul_path
+            if src.exists():
                 import shutil
                 if _has_uncensor_markers(soul_path):
                     shutil.copy(soul_path, str(soul_path) + f".pre-normal-{__import__('datetime').datetime.now():%Y%m%d-%H%M%S}")
-                shutil.copy(normal_src, soul_path)
+                shutil.copy(src, soul_path)
     except Exception as e:
         print(f"uncensor-toggle: soul swap failed: {e}", file=sys.stderr)
 
