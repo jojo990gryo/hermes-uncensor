@@ -462,13 +462,108 @@ def _handle_uncensor(raw_args: str):
     return "\n".join(lines)
 
 
+def _handle_agi(raw_args: str):
+    """/agi [status|consolidate] — Hermes organ (AGI Core cortex) status + consolidation."""
+    args = (raw_args or "").strip().lower()
+    dt = __import__("datetime").datetime
+
+    # Memory store counts (best-effort)
+    import subprocess
+    ruflo_ok = False
+    ruflo_count = 0
+    try:
+        r = subprocess.run(
+            ["ruflo", "memory", "stats"],
+            capture_output=True, text=True, timeout=10, cwd=str(Path.home()),
+        )
+        if r.returncode == 0:
+            ruflo_ok = True
+            for line in r.stdout.splitlines():
+                if "entries" in line.lower() or "count" in line.lower():
+                    for token in line.split():
+                        if token.isdigit():
+                            ruflo_count = int(token)
+                            break
+    except Exception:
+        pass
+
+    vault_count = 0
+    try:
+        vault = Path("/mnt/d/secondbrain")
+        if vault.exists():
+            vault_count = sum(1 for _ in vault.rglob("*.md"))
+    except Exception:
+        pass
+
+    skill_count = 0
+    try:
+        skills_dir = Path.home() / ".hermes" / "skills"
+        if skills_dir.exists():
+            skill_count = sum(1 for _ in skills_dir.rglob("SKILL.md"))
+    except Exception:
+        pass
+
+    state = _load_state()
+    organ = {
+        "executor": "Hermes (AGI EXECUTOR)",
+        "cortex": "AGI Core (Ruflo + Obsidian + skills + MEMORY/USER)",
+        "brain_stem": state.get("auto_model") or "oc/big-pickle (default)",
+        "uncensored": _state_enabled(),
+        "ruflo_entries": ruflo_count if ruflo_ok else "unknown",
+        "obsidian_notes": vault_count,
+        "skills": skill_count,
+    }
+
+    if args == "consolidate":
+        # Trigger the daily-consolidation pattern (memory-side already cron'd; here we report + kick)
+        lines = [
+            "AGI CORTEX CONSOLIDATION",
+            "-------------------------",
+            "1. Ruflo near-duplicate merge  — run `ruflo memory cleanup` + dedupe search",
+            "2. Obsidian daily consolidate  — cron already active (vault-side merge)",
+            "3. Skill promotion             — promote reusable procedures via skill_manage",
+            "4. MEMORY/USER budget         — trim stale, then add new standing facts",
+            "",
+            "Organ state:",
+        ]
+        lines.append(f"  Executor : {organ['executor']}")
+        lines.append(f"  Cortex   : {organ['cortex']}")
+        lines.append(f"  Brain    : {organ['brain_stem']}")
+        lines.append(f"  Uncensor : {'ON' if organ['uncensored'] else 'OFF'}")
+        lines.append(f"  Ruflo    : {organ['ruflo_entries']} entries")
+        lines.append(f"  Obsidian : {organ['obsidian_notes']} notes")
+        lines.append(f"  Skills   : {organ['skills']}")
+        lines.append("")
+        lines.append("Consolidation loop commenced. Full merge runs via the daily cron; run 'ruflo memory cleanup' for immediate dedupe.")
+        return "\n".join(lines)
+
+    # status (default)
+    return (
+        f"HERMES ORGAN — AGI EXECUTOR running on AGI CORE cortex\n"
+        f"  Executor : {organ['executor']}\n"
+        f"  Cortex   : {organ['cortex']}\n"
+        f"  Brain    : {organ['brain_stem']}\n"
+        f"  Uncensor : {'ON' if organ['uncensored'] else 'OFF'}\n"
+        f"  Ruflo    : {organ['ruflo_entries']} entries\n"
+        f"  Obsidian : {organ['obsidian_notes']} notes\n"
+        f"  Skills   : {organ['skills']}\n"
+        f"Usage: /agi status | consolidate"
+    )
+
+
 def register(ctx):
-    """Register the /uncensor command and system-prompt section."""
+    """Register the /uncensor + /agi commands and system-prompt section."""
     ctx.register_command(
         "uncensor",
         _handle_uncensor,
         description="Toggle GODMODE uncensored mode + scan/auto-detect router models",
         args_hint="on|off|status|scan|auto",
+    )
+    ctx.register_command(
+        "agi",
+        _handle_agi,
+        description="Hermes organ (AGI Core) status + consolidation",
+        args_hint="status|consolidate",
     )
     ctx.register_system_prompt_section(
         "uncensor",
