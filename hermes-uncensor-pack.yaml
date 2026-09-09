@@ -6,4 +6,4 @@ plugins:
   - name: uncensor-toggle
     repo: jojo990gryo/hermes-uncensor
     subdir: uncensor-toggle
-    ref: db92e30025197721112d129600002ea9ccd9a020
+    ref: 96e2ab8fd5b716507f91f486b0c89d39cda93f1c

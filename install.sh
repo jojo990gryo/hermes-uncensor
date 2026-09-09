@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO="jojo990gryo/hermes-uncensor"
-REF="db92e30025197721112d129600002ea9ccd9a020"
+REF="96e2ab8fd5b716507f91f486b0c89d39cda93f1c"
 PACK_URL="https://raw.githubusercontent.com/${REPO}/${REF}/hermes-uncensor-pack.yaml"
 SOUL_URL="https://raw.githubusercontent.com/${REPO}/${REF}/SOUL.md"
 
