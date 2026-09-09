@@ -34,6 +34,8 @@ Then `/uncensor on` and restart.
 - `/uncensor on` — enables uncensored frame (persists, cache-safe)
 - `/uncensor off` — disables it
 - `/uncensor status` — shows state + last toggle time
+- `/uncensor scan` — probes your router's models, classifies uncensored/refused/empty/dead
+- `/uncensor auto` — probes + auto-selects the best uncensored model and sets it as default
 - Injects into system prompt every session when ON
 
 ### SOUL.md
