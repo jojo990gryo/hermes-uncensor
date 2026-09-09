@@ -52,6 +52,9 @@ _DEFAULT_STATE = {
     "toggled_by": "",
     "scan_results": None,
     "auto_model": None,
+    "model_enabled": False,
+    "previous_model": "",
+    "model_updated_at": None,
 }
 
 # Probe query — innocuous, checks if model responds or refuses
@@ -462,6 +465,95 @@ def _handle_uncensor(raw_args: str):
     return "\n".join(lines)
 
 
+def _handle_model(raw_args: str):
+    """/model [on|off|set <id>|status] — switch big-pickle (uncensored) vs current default."""
+    args = (raw_args or "").strip()
+    state = _load_state()
+    lower = args.lower()
+
+    # on: activate big-pickle as default (uncensored model)
+    if lower in ("on", "enable", "big-pickle", "uncensored"):
+        old = state.get("previous_model", "")
+        target = "oc/big-pickle"
+        _save_model_default(target)
+        state["model_enabled"] = True
+        state["previous_model"] = state.get("previous_model") or old
+        state["model_updated_at"] = __import__("datetime").datetime.now().isoformat()
+        _save_state(state)
+        return (
+            f"MODEL: big-pickle ON (default = {target})\n"
+            f"Uncensored model active. Applies next session by prompt-cache design.\n"
+            f"Previous default preserved: {old or '(none recorded)'}\n"
+            "Switch back: /model off"
+        )
+
+    # off: restore previous default (or user-specified fallback)
+    if lower in ("off", "disable"):
+        prev = state.get("previous_model", "") or "oc/mimo-v2.5-free"
+        _save_model_default(prev)
+        state["model_enabled"] = False
+        state["model_updated_at"] = __import__("datetime").datetime.now().isoformat()
+        _save_state(state)
+        return (
+            f"MODEL: big-pickle OFF — default restored to {prev}\n"
+            "Applies next session."
+        )
+
+    # set <id>: arbitrary model
+    if lower.startswith("set "):
+        target = args[4:].strip()
+        if not target:
+            return "Usage: /model set <model-id>"
+        old = state.get("previous_model") or _get_model_default()
+        _save_model_default(target)
+        state["previous_model"] = old
+        state["model_enabled"] = True
+        state["model_updated_at"] = __import__("datetime").datetime.now().isoformat()
+        _save_state(state)
+        return f"MODEL: default set to {target}. Applies next session. Previous: {old}"
+
+    # status
+    cur = _get_model_default()
+    enabled = state.get("model_enabled", False)
+    prev = state.get("previous_model", "")
+    return (
+        f"MODEL STATUS\n"
+        f"  Current default : {cur}\n"
+        f"  big-pickle ON   : {'yes' if enabled else 'no'}\n"
+        f"  Previous        : {prev or '(none)'}\n"
+        "Usage: /model on | off | set <id> | status"
+    )
+
+
+def _get_model_default() -> str:
+    """Read model.default from hermes config."""
+    try:
+        import subprocess
+        r = subprocess.run(
+            ["hermes", "config", "get", "model.default"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode == 0:
+            val = r.stdout.strip().strip("'\"")
+            if val and "none" not in val.lower():
+                return val
+    except Exception:
+        pass
+    return "unknown"
+
+
+def _save_model_default(model_id: str) -> None:
+    """Set model.default via hermes CLI (patch tool blocks config.yaml)."""
+    try:
+        import subprocess
+        subprocess.run(
+            ["hermes", "config", "set", "model.default", model_id],
+            capture_output=True, timeout=10,
+        )
+    except Exception:
+        pass
+
+
 def _handle_agi(raw_args: str):
     """/agi [status|consolidate] — Hermes organ (AGI Core cortex) status + consolidation."""
     args = (raw_args or "").strip().lower()
@@ -580,6 +672,12 @@ def register(ctx):
         _handle_agi,
         description="Hermes organ (AGI Core) status + consolidation",
         args_hint="status|consolidate",
+    )
+    ctx.register_command(
+        "model",
+        _handle_model,
+        description="Switch default model: /model on (big-pickle) | off | set <id> | status",
+        args_hint="on|off|set <id>|status",
     )
     ctx.register_system_prompt_section(
         "uncensor",
