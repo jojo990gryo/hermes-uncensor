@@ -1,0 +1,9 @@
+name: uncensor-toggle
+version: "0.1.0"
+description: /uncensor on|off — toggle GODMODE uncensored system prompt per session, persisted across sessions.
+author: Hermes Agent
+hooks:
+  - none
+provides_hooks:
+  - system_prompt_section
+  - command
