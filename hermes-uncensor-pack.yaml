@@ -1,0 +1,9 @@
+name: hermes-uncensor-pack
+description: "Hermes Uncensor: GODMODE frame, no refusals, /uncensor toggle — one-command install."
+author: jojo990gryo
+version: 1.0.0
+plugins:
+  - name: uncensor-toggle
+    repo: jojo990gryo/hermes-uncensor
+    subdir: uncensor-toggle
+    ref: 09453162de2a3be622e1c2688f557945ad2b95d0
