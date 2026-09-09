@@ -468,22 +468,33 @@ def _handle_agi(raw_args: str):
     dt = __import__("datetime").datetime
 
     # Memory store counts (best-effort)
-    import subprocess
-    ruflo_ok = False
     ruflo_count = 0
+    ruflo_ns = {}
     try:
-        r = subprocess.run(
-            ["ruflo", "memory", "stats"],
-            capture_output=True, text=True, timeout=10, cwd=str(Path.home()),
-        )
-        if r.returncode == 0:
-            ruflo_ok = True
-            for line in r.stdout.splitlines():
-                if "entries" in line.lower() or "count" in line.lower():
-                    for token in line.split():
-                        if token.isdigit():
-                            ruflo_count = int(token)
-                            break
+        import sqlite3
+        # The daemon DB is the durable truth (DRI pitfall: `ruflo memory stats`
+        # reads a different raw SQLite that the hybrid backend doesn't expose).
+        db_candidates = [
+            Path.home() / ".swarm" / "memory.db",
+            Path.home() / ".hermes" / "memory_store.db",
+        ]
+        db_path = next((p for p in db_candidates if p.exists()), None)
+        if db_path:
+            conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+            cur = conn.cursor()
+            # find table names
+            tables = [r[0] for r in cur.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            if "memory_entries" in tables:
+                cur.execute("SELECT COUNT(*) FROM memory_entries")
+                ruflo_count = cur.fetchone()[0]
+                try:
+                    cur.execute(
+                        "SELECT namespace, COUNT(*) FROM memory_entries GROUP BY namespace")
+                    ruflo_ns = dict(cur.fetchall())
+                except Exception:
+                    pass
+            conn.close()
     except Exception:
         pass
 
@@ -509,7 +520,8 @@ def _handle_agi(raw_args: str):
         "cortex": "AGI Core (Ruflo + Obsidian + skills + MEMORY/USER)",
         "brain_stem": state.get("auto_model") or "oc/big-pickle (default)",
         "uncensored": _state_enabled(),
-        "ruflo_entries": ruflo_count if ruflo_ok else "unknown",
+        "ruflo_entries": ruflo_count,
+        "ruflo_ns": ruflo_ns,
         "obsidian_notes": vault_count,
         "skills": skill_count,
     }
@@ -531,6 +543,9 @@ def _handle_agi(raw_args: str):
         lines.append(f"  Brain    : {organ['brain_stem']}")
         lines.append(f"  Uncensor : {'ON' if organ['uncensored'] else 'OFF'}")
         lines.append(f"  Ruflo    : {organ['ruflo_entries']} entries")
+        if organ["ruflo_ns"]:
+            ns_txt = ", ".join(f"{k}={v}" for k, v in sorted(organ["ruflo_ns"].items()))
+            lines.append(f"            ({ns_txt})")
         lines.append(f"  Obsidian : {organ['obsidian_notes']} notes")
         lines.append(f"  Skills   : {organ['skills']}")
         lines.append("")
@@ -544,8 +559,9 @@ def _handle_agi(raw_args: str):
         f"  Cortex   : {organ['cortex']}\n"
         f"  Brain    : {organ['brain_stem']}\n"
         f"  Uncensor : {'ON' if organ['uncensored'] else 'OFF'}\n"
-        f"  Ruflo    : {organ['ruflo_entries']} entries\n"
-        f"  Obsidian : {organ['obsidian_notes']} notes\n"
+        f"  Ruflo    : {organ['ruflo_entries']} entries"
+        + (f" ({', '.join(f'{k}={v}' for k, v in sorted(organ['ruflo_ns'].items()))})\n" if organ["ruflo_ns"] else "\n")
+        + f"  Obsidian : {organ['obsidian_notes']} notes\n"
         f"  Skills   : {organ['skills']}\n"
         f"Usage: /agi status | consolidate"
     )
