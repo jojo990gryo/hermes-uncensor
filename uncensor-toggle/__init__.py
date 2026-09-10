@@ -94,25 +94,24 @@ _DEAD_PATTERNS = ["401", "not supported", "not found", "does not exist"]
 # SOUL variants — normal (Hermes default) + uncensored (GODMODE/black-hat doctrine)
 _NORMAL_SOUL_BACKUP = Path.home() / ".hermes" / "SOUL.md.bak-original-20260909-184248"
 _UNCENSOR_SOUL_BACKUP = Path.home() / ".hermes" / "SOUL.md.bak-uncensor-20260909-211010"
+_SAVED_NORMAL = Path.home() / ".hermes" / "SOUL.md.normal-saved"
 
 
 def _swap_soul(uncensored: bool) -> None:
-    """Deploy uncensored SOUL on →/off→ normal SOUL. Non-destructive: backs up current first."""
+    """Auto-save normal on → on, restore saved normal on → off."""
     soul_path = Path.home() / ".hermes" / "SOUL.md"
     try:
+        import shutil
         if uncensored:
+            # Save current SOUL (the normal one) before overwriting
+            shutil.copy(soul_path, _SAVED_NORMAL)
+            # Deploy uncensored SOUL
             src = _UNCENSOR_SOUL_BACKUP if _UNCENSOR_SOUL_BACKUP.exists() else soul_path
-            if src.exists():
-                import shutil
-                shutil.copy(soul_path, str(soul_path) + f".pre-uncensor-{__import__('datetime').datetime.now():%Y%m%d-%H%M%S}")
-                shutil.copy(src, soul_path)
+            shutil.copy(src, soul_path)
         else:
-            src = _NORMAL_SOUL_BACKUP if _NORMAL_SOUL_BACKUP.exists() else soul_path
-            if src.exists():
-                import shutil
-                if _has_uncensor_markers(soul_path):
-                    shutil.copy(soul_path, str(soul_path) + f".pre-normal-{__import__('datetime').datetime.now():%Y%m%d-%H%M%S}")
-                shutil.copy(src, soul_path)
+            # Restore the auto-saved normal SOUL
+            src = _SAVED_NORMAL if _SAVED_NORMAL.exists() else _NORMAL_SOUL_BACKUP
+            shutil.copy(src, soul_path)
     except Exception as e:
         print(f"uncensor-toggle: soul swap failed: {e}", file=sys.stderr)
 
