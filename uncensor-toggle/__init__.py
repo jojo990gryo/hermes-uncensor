@@ -98,18 +98,15 @@ _SAVED_NORMAL = Path.home() / ".hermes" / "SOUL.md.normal-saved"
 
 
 def _swap_soul(uncensored: bool) -> None:
-    """Auto-save normal on → on, restore saved normal on → off."""
+    """On: deploy uncensored SOUL. Off: restore the fixed normal-saved."""
     soul_path = Path.home() / ".hermes" / "SOUL.md"
     try:
         import shutil
         if uncensored:
-            # Save current SOUL (the normal one) before overwriting
-            shutil.copy(soul_path, _SAVED_NORMAL)
-            # Deploy uncensored SOUL
-            src = _UNCENSOR_SOUL_BACKUP if _UNCENSOR_SOUL_BACKUP.exists() else soul_path
-            shutil.copy(src, soul_path)
+            # Always deploy from the pinned uncensored backup
+            shutil.copy(_UNCENSOR_SOUL_BACKUP, soul_path)
         else:
-            # Restore the auto-saved normal SOUL
+            # Always restore from the pinned normal-saved
             src = _SAVED_NORMAL if _SAVED_NORMAL.exists() else _NORMAL_SOUL_BACKUP
             shutil.copy(src, soul_path)
     except Exception as e:
